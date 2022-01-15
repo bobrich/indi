@@ -673,6 +673,9 @@ bool CelestronGPS::MoveNS(INDI_DIR_NS dir, TelescopeMotionCommand command)
             }
             else
                 LOGF_INFO("Movement toward %s halted.", (move == CELESTRON_N) ? "North" : "South");
+                //if Az is still slewing don't enable tracking
+                if (!manualSlewingAz)
+                    SetTrackEnabled(true);
             break;
     }
 
@@ -707,6 +710,9 @@ bool CelestronGPS::MoveWE(INDI_DIR_WE dir, TelescopeMotionCommand command)
             }
             else
                 LOGF_INFO("Movement toward %s halted.", (move == CELESTRON_W) ? "West" : "East");
+                //if Alt is still slewing don't enable tracking
+                if (!manualSlewingAlt)
+                    SetTrackEnabled(true);
             break;
     }
 
@@ -823,7 +829,7 @@ bool CelestronGPS::ReadScopeStatus()
     switch (TrackState)
     {
         case SCOPE_SLEWING:
-            // are we done?
+            // are we done with Goto and manual slewing?
             bool slewing;
             if (driver.is_slewing(&slewing) && !slewing && !manualSlewingAlt && !manualSlewingAz)
             {
@@ -1963,6 +1969,7 @@ bool CelestronGPS::SetTrackMode(uint8_t mode)
 
 bool CelestronGPS::SetTrackEnabled(bool enabled)
 {
+    LOGF_INFO("Setting TrackEnabled to %s.", enabled ? "true" : "false");
     return setCelestronTrackMode(enabled ? fwInfo.celestronTrackMode : CTM_OFF);
     //return setTrackMode(enabled ? static_cast<CELESTRON_TRACK_MODE>(IUFindOnSwitchIndex(&TrackModeSP)+1) : TRACKING_OFF);
 }
